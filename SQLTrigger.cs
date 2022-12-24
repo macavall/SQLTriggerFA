@@ -14,6 +14,7 @@ namespace SQLTriggerFA
 {
     public static class SQLTrigger
     {
+        [Disable]
         [FunctionName("ToDoTrigger")]
         public static async Task Run(
             [SqlTrigger("[dbo].[ToDo]", ConnectionStringSetting = "SqlConnectionString")]
