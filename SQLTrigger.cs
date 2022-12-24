@@ -21,6 +21,9 @@ namespace SQLTriggerFA
             ILogger logger,
             [Sql("dbo.ToDo", ConnectionStringSetting = "SqlConnectionString")] IAsyncCollector<ToDoItem> toDoItems)
         {
+            int loopCount = Convert.ToInt32(Environment.GetEnvironmentVariable("loopCount"));
+
+            // Loop through the SQL Change Records from the SQL Trigger
             foreach (SqlChange<ToDoItem> change in changes)
             {
                 ToDoItem toDoItem = change.Item;
@@ -31,7 +34,8 @@ namespace SQLTriggerFA
             // List of ToDoItems to be inserted into the ToDo table
             List<ToDoItem> toDoItemsList = new List<ToDoItem>();
 
-            for (int i = 0; i < 10; i++)
+            // Populate the toDoItemsList
+            for (int i = 0; i < loopCount; i++)
             {
                 // Add a new ToDoItem to the list
                 toDoItemsList.Add(new ToDoItem
@@ -49,6 +53,7 @@ namespace SQLTriggerFA
                 await toDoItems.AddAsync(toDoItem);
             }
 
+            // Flushing the accumulated items in the toDoItems
             await toDoItems.FlushAsync();
         }
     }
