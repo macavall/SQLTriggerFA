@@ -14,13 +14,14 @@ namespace SQLTriggerFA
 {
     public static class SQLTrigger
     {
-        [Disable]
+        [Disable("SQLTrigger")]
         [FunctionName("ToDoTrigger")]
         public static async Task Run(
             [SqlTrigger("[dbo].[ToDo]", ConnectionStringSetting = "SqlConnectionString")]
             IReadOnlyList<SqlChange<ToDoItem>> changes,
-            ILogger logger,
-            [Sql("dbo.ToDo", ConnectionStringSetting = "SqlConnectionString")] IAsyncCollector<ToDoItem> toDoItems)
+            ILogger logger//,
+            //[Sql("dbo.ToDo", ConnectionStringSetting = "SqlConnectionString")] IAsyncCollector<ToDoItem> toDoItems
+            )
         {
             int loopCount = Convert.ToInt32(Environment.GetEnvironmentVariable("loopCount"));
 
@@ -30,32 +31,43 @@ namespace SQLTriggerFA
                 ToDoItem toDoItem = change.Item;
                 logger.LogInformation($"Change operation: {change.Operation}");
                 logger.LogInformation($"Id: {toDoItem.Id}, Title: {toDoItem.title}, Url: {toDoItem.url}, Completed: {toDoItem.completed}");
-            }
 
-            // List of ToDoItems to be inserted into the ToDo table
-            List<ToDoItem> toDoItemsList = new List<ToDoItem>();
+                change.Item.completed = true;
+                //await toDoItems.AddAsync(change.Item);
 
-            // Populate the toDoItemsList
-            for (int i = 0; i < loopCount; i++)
-            {
-                // Add a new ToDoItem to the list
-                toDoItemsList.Add(new ToDoItem
+                // Loop through the SQL Change Records from the SQL Trigger
+                for (int i = 0; i < loopCount; i++)
                 {
-                    Id = Guid.NewGuid(),
-                    title = "New ToDoItem",
-                    url = "https://www.microsoft.com",
-                    completed = false
-                });
+                    logger.LogInformation($"Loop Count: {i}");
+                }
             }
 
-            // Add new ToDo Class to the SQL Table
-            foreach (ToDoItem toDoItem in toDoItemsList)
-            {
-                await toDoItems.AddAsync(toDoItem);
-            }
+            #region Old Code for SQL Trigger
+            //// List of ToDoItems to be inserted into the ToDo table
+            //List<ToDoItem> toDoItemsList = new List<ToDoItem>();
 
-            // Flushing the accumulated items in the toDoItems
-            await toDoItems.FlushAsync();
+            //// Populate the toDoItemsList
+            //for (int i = 0; i < loopCount; i++)
+            //{
+            //    // Add a new ToDoItem to the list
+            //    toDoItemsList.Add(new ToDoItem
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        title = "New ToDoItem",
+            //        url = "https://www.microsoft.com",
+            //        completed = false
+            //    });
+            //}
+
+            //// Add new ToDo Class to the SQL Table
+            //foreach (ToDoItem toDoItem in toDoItemsList)
+            //{
+            //    await toDoItems.AddAsync(toDoItem);
+            //}
+
+            //// Flushing the accumulated items in the toDoItems
+            //await toDoItems.FlushAsync();
+            #endregion
         }
     }
 }
